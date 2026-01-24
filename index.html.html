@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Residentes | Planicies I</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Ocultar contenido hasta autenticar */
+        #app-container { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased h-screen overflow-hidden">
+
+    <!-- PANTALLA DE BLOQUEO (LOGIN) -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-slate-900 flex flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center">
+            <div class="w-16 h-16 bg-primary-600 rounded-xl mx-auto flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-lg shadow-primary-500/30">
+                P1
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Portal de Vecinos</h2>
+            <p class="text-slate-500 mb-6 text-sm">Esta información es privada y exclusiva para residentes de Planicies I.</p>
+            
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <input type="password" id="password-input" 
+                        class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all text-center text-lg tracking-widest"
+                        placeholder="Ingresa la clave de acceso" required>
+                </div>
+                <button type="submit" 
+                    class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-lock-open"></i> Acceder
+                </button>
+                <p id="login-error" class="text-red-500 text-sm hidden font-medium mt-2">
+                    <i class="fas fa-times-circle mr-1"></i> Contraseña incorrecta
+                </p>
+            </form>
+            <p class="mt-6 text-xs text-slate-400">¿Eres nuevo residente? Solicita la clave en la caseta de vigilancia.</p>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL (Oculto inicialmente) -->
+    <div id="app-container" class="h-full flex">
+        <!-- SIDEBAR -->
+        <aside class="hidden md:flex flex-col w-64 bg-slate-900 text-white h-full shadow-xl transition-all z-20">
+            <div class="p-6 border-b border-slate-800 flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary-500/30">P1</div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight">Planicies I</h1>
+                    <p class="text-xs text-slate-400">Portal de Vecinos</p>
+                </div>
+            </div>
+            <nav class="flex-1 overflow-y-auto py-4" id="sidebar-menu"></nav>
+            <div class="p-4 border-t border-slate-800">
+                <button onclick="logout()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded flex items-center justify-center gap-2 text-sm transition-colors">
+                    <i class="fas fa-sign-out-alt"></i> Salir
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <div class="flex-1 flex flex-col h-full relative overflow-hidden">
+            <header class="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center shadow-md z-30">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-primary-600 rounded flex items-center justify-center font-bold">P1</div>
+                    <span class="font-bold">Planicies I</span>
+                </div>
+                <button id="mobile-menu-btn" class="text-white focus:outline-none"><i class="fas fa-bars text-xl"></i></button>
+            </header>
+            
+            <div id="mobile-menu" class="absolute inset-0 bg-slate-900 z-40 transform translate-x-full transition-transform duration-300 md:hidden flex flex-col pt-16">
+                <nav class="flex-1 overflow-y-auto px-4" id="mobile-sidebar-menu"></nav>
+                <div class="p-4 border-t border-slate-800">
+                     <button onclick="logout()" class="w-full bg-slate-800 text-slate-300 py-3 rounded text-center">Cerrar Sesión</button>
+                </div>
+            </div>
+
+            <main class="flex-1 overflow-y-auto p-4 md:p-8 relative" id="main-content"></main>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 transition-transform duration-300 flex items-center gap-3 z-50">
+        <i class="fas fa-check-circle text-green-400"></i> <span id="toast-message">Copiado</span>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. CONFIGURACIÓN DE SEGURIDAD
+        // ==========================================
+        
+        
+        const ACCESS_HASH = "69b1df8bf0937f6706c43526950c80f67de61435c9f0991753e07234e814df6e"; 
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const input = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('login-error');
+            
+            // Generar hash del input
+            const msgBuffer = new TextEncoder().encode(input);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            if (hashHex === ACCESS_HASH) {
+                // Éxito
+                localStorage.setItem('p1_session', 'true');
+                showApp();
+            } else {
+                // Error
+                errorMsg.classList.remove('hidden');
+                document.getElementById('password-input').value = '';
+                document.getElementById('password-input').focus();
+            }
+        }
+
+        function showApp() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex'; // Activar Flex
+            document.getElementById('app-container').classList.add('fade-in');
+            renderMenu();
+            navigate('dashboard');
+        }
+
+        function checkSession() {
+            if(localStorage.getItem('p1_session') === 'true') {
+                showApp();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('p1_session');
+            location.reload();
+        }
+
+        // ==========================================
+        // 2. BASE DE DATOS (DATA)
+        // ==========================================
+        const COMMUNITY_DATA = {
+            general: { name: "Residencial Planicies I", lastUpdate: "23 Enero 2026", adminContact: "admin@planicies1.mx" },
+            menu: [
+                { id: 'dashboard', label: 'Inicio', icon: 'fa-home', type: 'dashboard' },
+                { id: 'news', label: 'Comunicados', icon: 'fa-newspaper', type: 'news' },
+                { id: 'payments', label: 'Pagos y Finanzas', icon: 'fa-credit-card', type: 'payments' },
+                { id: 'calendar', label: 'Calendario', icon: 'fa-calendar-alt', type: 'calendar' },
+                { id: 'docs', label: 'Documentación', icon: 'fa-folder-open', type: 'docs' },
+                { id: 'access', label: 'Guía y Accesos', icon: 'fa-id-card', type: 'faq' }
+            ],
+            dashboard: {
+                alerts: [
+                    { type: 'warning', text: 'Mantenimiento del portón principal programado para el Jueves 25.' },
+                    { type: 'info', text: 'Recuerda enviar tu comprobante de pago antes del día 5.' }
+                ],
+                stats: { labels: ['Al Corriente', 'Con Adeudo', 'Convenio'], data: [85, 10, 5] },
+                quickLinks: [
+                    { title: 'Reportar Incidencia', icon: 'fa-exclamation-triangle', color: 'bg-amber-100 text-amber-600', action: 'mailto:admin@planicies1.mx?subject=Reporte' },
+                    { title: 'Reglamento Rápido', icon: 'fa-book', color: 'bg-primary-100 text-primary-600', action: '#docs' },
+                    { title: 'Chat Vecinos', icon: 'fa-comments', color: 'bg-green-100 text-green-600', action: '#' }
+                ]
+            },
+            news: [
+                { title: "Resultados de la Asamblea Anual 2025", date: "15 Enero 2026", category: "Administración", content: "Se aprobó el presupuesto para la repavimentación de la calle principal.", important: true },
+                { title: "Cambio de proveedor de jardinería", date: "10 Enero 2026", category: "Servicios", content: "A partir de febrero, 'Verde Total' se encargará de las áreas comunes.", important: false }
+            ],
+            payments: {
+                monthlyFee: "$1,250.00 MXN",
+                bankAccounts: [
+                    { bank: "BBVA", owner: "Asoc. Vecinos Planicies I A.C.", clabe: "012345678901234567", account: "1234567890" },
+                    { bank: "Banorte", owner: "Asoc. Vecinos Planicies I A.C.", clabe: "987654321098765432", account: "0987654321" }
+                ],
+                instructions: "Indispensable poner en concepto: CALLE + NUMERO CASA (Ej: ROBLE 124)."
+            },
+            calendar: [
+                { day: "Lunes", activities: ["Recolección de Basura (Mañana)"] },
+                { day: "Martes", activities: ["Jardinería Áreas Comunes"] },
+                { day: "Jueves", activities: ["Recolección de Basura (Mañana)", "Mantenimiento Alberca"] },
+                { day: "Viernes", activities: ["Jardinería Áreas Comunes"] }
+            ],
+            docs: [
+                { name: "Reglamento Interno", type: "PDF", size: "2.4 MB", url: "#" },
+                { name: "Aviso de Privacidad", type: "PDF", size: "1.0 MB", url: "#" }
+            ],
+            access: [
+                { q: "¿Cómo solicito un TAG?", a: "Acudir a caseta Lunes o Miércoles de 9am a 1pm." },
+                { q: "¿Horario mudanzas?", a: "Lunes a Sábado de 9am a 6pm." }
+            ]
+        };
+
+        // ==========================================
+        // 3. LÓGICA UI
+        // ==========================================
+        const mainContent = document.getElementById('main-content');
+        let currentChart = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkSession(); // Verificar si ya inició sesión
+            document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
+        });
+
+        function renderMenu() {
+            const createLink = (item) => `
+                <a href="#" onclick="navigate('${item.id}'); toggleMobileMenu(true); return false;" 
+                   class="nav-item flex items-center px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors border-l-4 border-transparent hover:border-primary-500"
+                   data-id="${item.id}">
+                    <i class="fas ${item.icon} w-6 text-center"></i>
+                    <span class="ml-3 font-medium">${item.label}</span>
+                </a>`;
+            const menuHtml = COMMUNITY_DATA.menu.map(createLink).join('');
+            document.getElementById('sidebar-menu').innerHTML = menuHtml;
+            document.getElementById('mobile-sidebar-menu').innerHTML = menuHtml;
+        }
+
+        function navigate(viewId) {
+            document.querySelectorAll('.nav-item').forEach(el => {
+                if(el.dataset.id === viewId) {
+                    el.classList.add('bg-slate-800', 'text-white', 'border-primary-500');
+                    el.classList.remove('border-transparent', 'text-slate-300');
+                } else {
+                    el.classList.remove('bg-slate-800', 'text-white', 'border-primary-500');
+                    el.classList.add('border-transparent', 'text-slate-300');
+                }
+            });
+            mainContent.innerHTML = `<div class="fade-in max-w-5xl mx-auto pb-10">${generateViewHTML(viewId)}</div>`;
+            if(viewId === 'dashboard') initDashboardChart();
+        }
+
+        function generateViewHTML(viewId) {
+            const data = COMMUNITY_DATA;
+            const header = (title, sub) => `<div class="mb-8"><h2 class="text-3xl font-bold text-slate-800">${title}</h2><p class="text-slate-500 mt-1">${sub}</p></div>`;
+
+            if(viewId === 'dashboard') {
+                return `
+                    ${header(`Bienvenido a ${data.general.name}`, `Última actualización: ${data.general.lastUpdate}`)}
+                    <div class="grid gap-4 mb-8">
+                        ${data.dashboard.alerts.map(a => `<div class="p-4 rounded-lg border-l-4 flex gap-3 shadow-sm ${a.type === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-800' : 'bg-blue-50 border-blue-500 text-blue-800'}"><i class="fas ${a.type === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle'} mt-1"></i><p class="font-medium">${a.text}</p></div>`).join('')}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100"><h3 class="text-lg font-bold mb-4 text-slate-700">Estado de la Comunidad</h3><div class="h-64"><canvas id="statusChart"></canvas></div></div>
+                        <div class="space-y-4">${data.dashboard.quickLinks.map(l => `<a href="${l.action}" class="block bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:shadow-md flex items-center gap-4 group"><div class="w-12 h-12 rounded-full flex items-center justify-center text-lg ${l.color}"><i class="fas ${l.icon}"></i></div><div><h4 class="font-bold text-slate-700 group-hover:text-primary-600 transition-colors">${l.title}</h4></div></a>`).join('')}</div>
+                    </div>`;
+            }
+            if(viewId === 'payments') {
+                return `
+                    ${header('Información Financiera', 'Datos para pago de mantenimiento.')}
+                    <div class="bg-primary-50 rounded-xl p-6 mb-8 border border-primary-100 flex items-center gap-4"><div class="p-3 bg-white rounded-full text-primary-600 shadow-sm"><i class="fas fa-coins text-2xl"></i></div><div><p class="text-sm text-primary-600 font-semibold uppercase">Cuota Mensual</p><p class="text-3xl font-bold text-slate-800">${data.payments.monthlyFee}</p></div></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">${data.payments.bankAccounts.map(acc => `<div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200"><h3 class="text-lg font-bold text-slate-700 mb-2">${acc.bank}</h3><p class="text-xs text-slate-400">Beneficiario</p><p class="font-medium text-slate-800 mb-2">${acc.owner}</p><p class="text-xs text-slate-400">CLABE</p><div class="flex items-center gap-2 mb-2"><code class="font-mono bg-slate-100 px-2 rounded text-slate-700">${acc.clabe}</code><button onclick="copyToClipboard('${acc.clabe}')" class="text-primary-500 hover:text-primary-700"><i class="far fa-copy"></i></button></div><p class="text-xs text-slate-400">Cuenta</p><div class="flex items-center gap-2"><code class="font-mono bg-slate-100 px-2 rounded text-slate-700">${acc.account}</code><button onclick="copyToClipboard('${acc.account}')" class="text-primary-500 hover:text-primary-700"><i class="far fa-copy"></i></button></div></div>`).join('')}</div>`;
+            }
+            // (Simplificado para brevedad - el resto de vistas siguen la lógica anterior)
+            if(viewId === 'news') return `${header('Comunicados', '')}<div class="space-y-6">${data.news.map(n => `<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 ${n.important ? 'border-l-4 border-l-primary-500' : ''}"><h3 class="text-xl font-bold text-slate-800">${n.title}</h3><p class="text-slate-600 mt-2">${n.content}</p></div>`).join('')}</div>`;
+            if(viewId === 'calendar') return `${header('Calendario', '')}<div class="bg-white rounded-xl shadow-sm border border-slate-200 divide-y divide-slate-100">${data.calendar.map(d => `<div class="p-6 flex flex-col sm:flex-row sm:items-center"><span class="w-32 font-bold text-slate-800">${d.day}</span><div>${d.activities.map(a => `<div class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i><span class="text-slate-600">${a}</span></div>`).join('')}</div></div>`).join('')}</div>`;
+            if(viewId === 'docs') return `${header('Documentos', '')}<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${data.docs.map(d => `<a href="${d.url}" class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-primary-400 transition-all"><i class="fas fa-file-pdf text-2xl text-slate-400 mr-4"></i><div><h4 class="font-semibold text-slate-700">${d.name}</h4><p class="text-xs text-slate-400">${d.size}</p></div></a>`).join('')}</div>`;
+            if(viewId === 'access') return `${header('Accesos & FAQ', '')}<div class="space-y-4">${data.access.map((item,i) => `<div class="bg-white rounded-xl border border-slate-200 overflow-hidden"><button class="w-full text-left p-5 flex justify-between items-center font-bold text-slate-700" onclick="toggleAccordion('faq-${i}')">${item.q} <i class="fas fa-chevron-down text-slate-400" id="icon-faq-${i}"></i></button><div id="faq-${i}" class="hidden px-5 pb-5 text-slate-600 bg-slate-50 border-t border-slate-100 text-sm">${item.a}</div></div>`).join('')}</div>`;
+            return `<div class="text-center p-10">Cargando...</div>`;
+        }
+
+        function initDashboardChart() {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            if (currentChart) currentChart.destroy();
+            currentChart = new Chart(ctx, { type: 'doughnut', data: { labels: COMMUNITY_DATA.dashboard.stats.labels, datasets: [{ data: COMMUNITY_DATA.dashboard.stats.data, backgroundColor: ['#3b82f6', '#ef4444', '#f59e0b'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '70%' } });
+        }
+        function copyToClipboard(text) { navigator.clipboard.writeText(text).then(() => { const t = document.getElementById('toast'); t.classList.remove('translate-y-20'); setTimeout(() => t.classList.add('translate-y-20'), 3000); }); }
+        function toggleAccordion(id) { document.getElementById(id).classList.toggle('hidden'); document.getElementById('icon-'+id).classList.toggle('rotate-180'); }
+        function toggleMobileMenu(f) { const m = document.getElementById('mobile-menu'); f===true ? m.classList.add('translate-x-full') : m.classList.toggle('translate-x-full'); }
+    </script>
+</body>
+</html>
