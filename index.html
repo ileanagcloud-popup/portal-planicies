@@ -383,8 +383,47 @@
                     </div>
                 `;
             }
+            if (viewId === 'news') {
+                return `
+                    ${header('Comunicados Oficiales', 'Mantente informado de lo que sucede en el fraccionamiento.')}
+                    
+                    <div class="space-y-6">
+                        ${data.news.map(item => `
+                            <!-- Tarjeta de Noticia -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 ${item.important ? 'border-l-4 border-l-primary-500' : ''} hover:shadow-md transition-shadow">
+                                
+                                <div class="flex flex-col md:flex-row md:items-start justify-between mb-3 gap-2">
+                                    <div>
+                                        <!-- Categoría (Badge) -->
+                                        <span class="inline-block px-2 py-1 rounded text-xs font-bold uppercase tracking-wide ${item.important ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-500'} mb-2">
+                                            ${item.category}
+                                        </span>
+                                        
+                                        <!-- Título -->
+                                        <h3 class="text-xl font-bold text-slate-800 leading-tight">
+                                            ${item.title}
+                                        </h3>
+                                    </div>
+
+                                    <!-- Fecha (con ícono) -->
+                                    <div class="flex items-center text-slate-400 text-sm whitespace-nowrap bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                                        <i class="far fa-clock mr-2 text-primary-400"></i>
+                                        <span class="font-medium">${item.date}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Contenido del comunicado -->
+                                <div class="text-slate-600 leading-relaxed border-t border-slate-50 pt-3 mt-2">
+                                    ${item.content}
+                                </div>
+
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
             // (Simplificado para brevedad - el resto de vistas siguen la lógica anterior)
-            if(viewId === 'news') return `${header('Comunicados', '')}<div class="space-y-6">${data.news.map(n => `<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 ${n.important ? 'border-l-4 border-l-primary-500' : ''}"><h3 class="text-xl font-bold text-slate-800">${n.title}</h3><p class="text-slate-600 mt-2">${n.content}</p></div>`).join('')}</div>`;
+            //if(viewId === 'news') return `${header('Comunicados', '')}<div class="space-y-6">${data.news.map(n => `<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 ${n.important ? 'border-l-4 border-l-primary-500' : ''}"><h3 class="text-xl font-bold text-slate-800">${n.title}</h3><p class="text-slate-600 mt-2">${n.content}</p></div>`).join('')}</div>`;
             if(viewId === 'calendar') return `${header('Calendario', '')}<div class="bg-white rounded-xl shadow-sm border border-slate-200 divide-y divide-slate-100">${data.calendar.map(d => `<div class="p-6 flex flex-col sm:flex-row sm:items-center"><span class="w-32 font-bold text-slate-800">${d.day}</span><div>${d.activities.map(a => `<div class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i><span class="text-slate-600">${a}</span></div>`).join('')}</div></div>`).join('')}</div>`;
             if(viewId === 'docs') return `${header('Documentos', '')}<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${data.docs.map(d => `<a href="${d.url}" class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-primary-400 transition-all"><i class="fas fa-file-pdf text-2xl text-slate-400 mr-4"></i><div><h4 class="font-semibold text-slate-700">${d.name}</h4><p class="text-xs text-slate-400">${d.size}</p></div></a>`).join('')}</div>`;
             if(viewId === 'access') return `${header('Accesos & FAQ', '')}<div class="space-y-4">${data.access.map((item,i) => `<div class="bg-white rounded-xl border border-slate-200 overflow-hidden"><button class="w-full text-left p-5 flex justify-between items-center font-bold text-slate-700" onclick="toggleAccordion('faq-${i}')">${item.q} <i class="fas fa-chevron-down text-slate-400" id="icon-faq-${i}"></i></button><div id="faq-${i}" class="hidden px-5 pb-5 text-slate-600 bg-slate-50 border-t border-slate-100 text-sm">${item.a}</div></div>`).join('')}</div>`;
