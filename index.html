@@ -131,7 +131,7 @@
         // ==========================================
         
         
-        const ACCESS_HASH = "69b1df8bf0937f6706c43526950c80f67de61435c9f0991753e07234e814df6e"; 
+        const ACCESS_HASH = "fdbe8b4475de480ea2d316e8563d2d3f230ca68430ad4cfe8a466409e9ddca57"; 
 
         async function handleLogin(e) {
             e.preventDefault();
@@ -179,7 +179,7 @@
         // 2. BASE DE DATOS (DATA)
         // ==========================================
         const COMMUNITY_DATA = {
-            general: { name: "Residencial Planicies I", lastUpdate: "26 Enero 2026", adminContact: "administracion@planiciesuno.org" },
+            general: { name: "Residencial Planicies I", lastUpdate: "09 Marzo 2026", adminContact: "administracion@planiciesuno.org" },
             menu: [
                 { id: 'dashboard', label: 'Inicio', icon: 'fa-home', type: 'dashboard' },
                 { id: 'news', label: 'Comunicados', icon: 'fa-newspaper', type: 'news' },
@@ -190,10 +190,10 @@
             ],
             dashboard: {
                 alerts: [
-                    { type: 'warning', text: 'Automatización de control de acceso en curso, conducir con precacuión al entrar.' },
+                    { type: 'warning', text: 'Automatización de control de acceso en curso, conducir con precaución al entrar.' },
                     { type: 'info', text: 'Recuerda enviar tu comprobante de pago antes del día 11.' }
                 ],
-                stats: { labels: ['Al Corriente', 'Con Adeudo', 'Convenio', 'No escrituradas'], data: [91, 2, 1, 48] },
+                stats: { labels: ['Al Corriente 69.72%', 'Con Adeudo 0.70%', 'Convenio de Pago 0.70%', 'Pendientes de Escriturar 21.13%', 'Por entregar 7.75%'], data: [99, 1, 1, 30,11] },
                 quickLinks: [
                     { title: 'Reportar Incidencia', icon: 'fa-exclamation-triangle', color: 'bg-amber-100 text-amber-600', action: 'mailto:administracion@planiciesuno.org?subject=Reporte' },
                     { title: 'Reglamento Rápido', icon: 'fa-book', color: 'bg-primary-100 text-primary-600', action: '#docs' },
@@ -201,7 +201,11 @@
                 ]
             },
             news: [
-                { title: "Próxima Asamblea 2026", date: "29 Enero 2026", category: "Administración", content: "29 de Enero | Modificación al reglamento interno anterior.", important: true },
+                { title: "Junta de Equipamiento: Casa Club", date: "5 Marzo 2026", category: "Proyectos", content: "5 de Marzo | Reunión de trabajo para revisar plan de equipamiento Casa Club", important: false },
+                { title: "Reunión Informativa Operación Tecnolak y Bienvenida a Residentes", date: "27 Febrero 2026", category: "Administración", content: "27 de Febrero | Reunión informativa para dudas sobre Tecnolak y Asociación Civil para nuevos residentes", important: false },
+                { title: "Acceso Vehicular con Tag", date: "23 Febrero 2026", category: "Servicios", content: "23 de Febrero | Inicia uso de TAG vehicular para Residentes", important: true },
+                { title: "Reunión Extraordinaria 2026", date: "5 Febrero 2026", category: "Administración", content: "5 de Febrero | Modificación al reglamento interno anterior. | Proyecto Casa Club | REGLAMENTO APROBADO | PROYECTO CASA CLUB COMO SALÓN DE EVENTOS", important: true },
+                { title: "Asamblea Ordinaria 2026", date: "29 Enero 2026", category: "Administración", content: "29 de Enero | Modificación al reglamento interno anterior. | Proyecto Casa Club | NO SE ALCANZÓ QORUM REQUERIDO", important: true },
                 { title: "Cambio de proveedor de jardinería", date: "14 Enero 2026", category: "Servicios", content: "A partir de enero, 'Alta Jardinería' se encargará de las áreas comunes.", important: false }
             ],
             payments: {
@@ -223,12 +227,40 @@
                 
             ],
             docs: [
-                { name: "Reglamento Interno 2024", type: "PDF", size: "Online", url: "https://drive.google.com/file/d/17-4HLt7mXDrpmIUH_uaiugppQjqaoezn/view?usp=drive_link" },
+                { name: "Reglamento Interno 2026", type: "PDF", size: "Online", url: "https://drive.google.com/file/d/17-4HLt7mXDrpmIUH_uaiugppQjqaoezn/view?usp=drive_link" },
                 { name: "Aviso de Privacidad", type: "PDF", size: "Online", url: "https://sway.cloud.microsoft/J1ZnjuoysMZl1wSG" }
             ],
             access: [
-                { q: "¿Cómo solicito un TAG?", a: "Acudir a caseta Lunes o Miércoles de 9am a 1pm." },
-                { q: "¿Horario mudanzas?", a: "Lunes a Sábado de 9am a 6pm." }
+                // --- ACCESOS Y SEGURIDAD ---
+                { 
+                    q: "¿Por cuál carril debo ingresar si soy Residente Solidario?", 
+                    a: "Los residentes al corriente con sus cuotas y con Tag activo deben usar el <strong>carril izquierdo</strong>. El sistema automatizado (Tecnolak) validará su acceso y abrirá la pluma de forma automática." 
+                },
+                { 
+                    q: "¿Qué procedimiento sigo si no tengo Tag o soy Residente No Solidario?", 
+                    a: "Deberá utilizar el <strong>carril derecho</strong> (carril de visitas). Por disposición del Reglamento 2026, los residentes sin Tag activo, no solidarios o con adeudo, deberán descender de su vehículo y realizar la apertura del portón de manera manual. Residente Solidario sin TAG deberá ingresar como si fuera visita mostrando su código QR válido." 
+                },
+                { 
+                    q: "¿Cómo autorizo el acceso a mis visitas o proveedores?", 
+                    a: "Toda visita, servicio o proveedor debe ingresar por el <strong>carril derecho</strong>. Es indispensable generarles una invitación con <strong>código QR</strong> desde la aplicación <strong>Residentfy</strong>. El guardia escaneará el código para validar la identidad y permitir el ingreso rápido." 
+                },
+                { 
+                    q: "¿Cuál es el protocolo para la entrada y salida peatonal?", 
+                    a: "Por su seguridad y la de su familia, el ingreso y salida peatonal debe realizarse <strong>exclusivamente por la puerta o torniquete peatonal</strong> designado. Queda estrictamente prohibido caminar por los carriles vehiculares para prevenir accidentes." 
+                },
+                // --- CONVIVENCIA Y AMENIDADES ---
+                { 
+                    q: "¿Cuáles son las reglas para el paseo de mascotas?", 
+                    a: "De acuerdo al Reglamento Interno, todas las mascotas deben pasear <strong>obligatoriamente con correa</strong> en todo momento dentro del fraccionamiento. Es responsabilidad del dueño recoger inmediatamente las heces de su mascota para mantener limpias las áreas comunes." 
+                },
+                { 
+                    q: "¿Cómo puedo reservar la Casa Club, Asadores o Alberca?", 
+                    a: "Todas las reservaciones de amenidades se gestionan de forma digital. Debe ingresar a la aplicación <strong>Residentfy</strong>, dirigirse a la sección <strong>'Amenidades'</strong>, seleccionar la fecha deseada y seguir las instrucciones para el pago de la cuota de recuperación (si aplica)." 
+                },
+                { 
+                    q: "¿Existen sanciones por incumplir el Reglamento?", 
+                    a: "Sí. El mal uso de las instalaciones, evadir los protocolos de acceso (vehicular o peatonal), o el incumplimiento de las normas de convivencia (como mascotas sin correa), generará <strong>sanciones automáticas</strong> aplicadas directamente a su estado de cuenta, conforme al Reglamento 2026." 
+                }
             ]
         };
 
@@ -433,7 +465,7 @@
         function initDashboardChart() {
             const ctx = document.getElementById('statusChart').getContext('2d');
             if (currentChart) currentChart.destroy();
-            currentChart = new Chart(ctx, { type: 'doughnut', data: { labels: COMMUNITY_DATA.dashboard.stats.labels, datasets: [{ data: COMMUNITY_DATA.dashboard.stats.data, backgroundColor: ['#008f39','#ef4444','#f59e0b','#3b82f6'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '70%' } });
+            currentChart = new Chart(ctx, { type: 'doughnut', data: { labels: COMMUNITY_DATA.dashboard.stats.labels, datasets: [{ data: COMMUNITY_DATA.dashboard.stats.data, backgroundColor: ['#008f39','#ef4444','#f59e0b','#3b82f6',' #FFFF00'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '70%' } });
         }
         function copyToClipboard(text) { navigator.clipboard.writeText(text).then(() => { const t = document.getElementById('toast'); t.classList.remove('translate-y-20'); setTimeout(() => t.classList.add('translate-y-20'), 3000); }); }
         function toggleAccordion(id) { document.getElementById(id).classList.toggle('hidden'); document.getElementById('icon-'+id).classList.toggle('rotate-180'); }
