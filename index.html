@@ -179,14 +179,20 @@
         // 2. BASE DE DATOS (DATA)
         // ==========================================
         const COMMUNITY_DATA = {
-            general: { name: "Residencial Planicies I", lastUpdate: "09 Marzo 2026", adminContact: "administracion@planiciesuno.org" },
+            general: { name: "Residencial Planicies I", lastUpdate: "11 Marzo 2026", adminContact: "administracion@planiciesuno.org" },
+             projectStatus: {
+            totalHouses: 142,
+            delivered: 112, // <- Cambia este número conforme se escrituren más casas
+            // El código calculará las pendientes automáticamente
+        },
             menu: [
                 { id: 'dashboard', label: 'Inicio', icon: 'fa-home', type: 'dashboard' },
                 { id: 'news', label: 'Comunicados', icon: 'fa-newspaper', type: 'news' },
                 { id: 'payments', label: 'Pagos y Finanzas', icon: 'fa-credit-card', type: 'payments' },
                 { id: 'calendar', label: 'Calendario', icon: 'fa-calendar-alt', type: 'calendar' },
                 { id: 'docs', label: 'Documentación', icon: 'fa-folder-open', type: 'docs' },
-                { id: 'access', label: 'Guía y Accesos', icon: 'fa-id-card', type: 'faq' }
+                { id: 'access', label: 'Guía y Accesos', icon: 'fa-id-card', type: 'faq' },
+                { id: 'directory', label: 'Directorio', icon: 'fa-address-book', type: 'directory' }
             ],
             dashboard: {
                 alerts: [
@@ -197,7 +203,13 @@
                 quickLinks: [
                     { title: 'Reportar Incidencia', icon: 'fa-exclamation-triangle', color: 'bg-amber-100 text-amber-600', action: 'mailto:administracion@planiciesuno.org?subject=Reporte' },
                     { title: 'Reglamento Rápido', icon: 'fa-book', color: 'bg-primary-100 text-primary-600', action: '#docs' },
-                    { title: 'Chat Vecinos', icon: 'fa-comments', color: 'bg-green-100 text-green-600', action: 'https://chat.whatsapp.com/BSg709CnYtF7dXfKPFqJ9H' }
+                    { title: 'Chat Nuevos Vecinos', icon: 'fa-comments', color: 'bg-green-100 text-green-600', action: 'https://chat.whatsapp.com/BSg709CnYtF7dXfKPFqJ9H' },
+                    { 
+                    title: 'Manual Residentfy', 
+                    icon: 'fa-mobile-alt', 
+                    color: 'bg-indigo-100 text-indigo-600', 
+                    action: '[https://www.residentfy.com/manual-interactivo-residente](https://www.residentfy.com/manual-interactivo-residente)' 
+                },
                 ]
             },
             news: [
@@ -210,12 +222,26 @@
             ],
             payments: {
                 monthlyFee: "$950.00 MXN",
+                extraFee: "$500.00 MXN", // Cuota extraordinaria
                 warning: "Para transferencias interbancarias (SPEI). Asegúrese de que el beneficiario coincida.",
                 bankAccounts: [
                     { bank: "BBVA", owner: "Asociación de Vecinos del Fraccionamiento Planicies 1, AC", clabe: "012580001260519440"},                    
                 ],                
                 referenceRule: "CALLE + NUMERO (Ej: TUNDRA 100, TUN100)",
                 instructions: "Sin esta referencia, su pago podría no ser identificado y generará recargos."
+            },
+            directory: {
+            board: [
+                { role: "Presidente", name: "Ileana ", desc: "Accesos, tags y manuales Residentfy" },
+                { role: "Tesorera", name: "Julia", desc: "Convenios y pagos" },
+                { role: "Secretaria", name: "Nahomi", desc: "Atención a residentes" },
+                { role: "Vocales", name: "Karen y Erika", desc: "Apoyo general" }
+            ],
+            groups: [
+                { name: "Avisos", type: "Mesa Directiva", desc: "Canal oficial de comunicación. Solo administradores pueden publicar." },
+                { name: "Grupos de Calle", type: "Vecinal", desc: "Para tratar temas puntuales con tus vecinos cercanos." },
+                { name: "Grupos Opcionales", type: "Comunidad", desc: "Mascotas, ventas, apoyo. Solicita tu acceso si te interesa." }
+            ]
             },
             calendar: [
                 { day: "Lunes", activities: ["Limpieza en Casa Club"] },
@@ -232,6 +258,10 @@
             ],
             access: [
                 // --- ACCESOS Y SEGURIDAD ---
+                 { 
+                    q: "¿Cómo obtengo acceso a la app Residentfy y dónde encuentro los documentos?", 
+                    a: "Para obtener tus accesos a Residentfy, contacta a la Presidente (Ileana). Toda la información relevante, comunicados y estados de cuenta están disponibles en la aplicación en la sección: <strong>Extras > Documentos Públicos</strong>, o el reglamento y aviso de privacidad en la sección de Documentos de este portal." 
+                },
                 { 
                     q: "¿Por cuál carril debo ingresar si soy Residente Solidario?", 
                     a: "Los residentes al corriente con sus cuotas y con Tag activo deben usar el <strong>carril izquierdo</strong>. El sistema automatizado (Tecnolak) validará su acceso y abrirá la pluma de forma automática." 
@@ -307,22 +337,64 @@
             const header = (title, sub) => `<div class="mb-8"><h2 class="text-3xl font-bold text-slate-800">${title}</h2><p class="text-slate-500 mt-1">${sub}</p></div>`;
 
             if(viewId === 'dashboard') {
+                const total = data.projectStatus?.totalHouses || 142;
+                const entregadas = data.projectStatus?.delivered || 112;
+                const pendientes = total - entregadas;
+                const porcentaje = Math.round((entregadas / total) * 100);
+
+                const progressSection = `
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-8 hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-primary-50 rounded-lg text-primary-600">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-700">Avance de Escrituración</h3>
+                            </div>
+                            <span class="bg-primary-50 text-primary-600 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
+                                ${porcentaje}% Completado
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-3 mb-6 overflow-hidden flex relative">
+                            <div class="bg-primary-500 h-3 transition-all duration-1000 ease-out" style="width: ${porcentaje}%"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 text-center divide-x divide-slate-100">
+                            <div>
+                                <p class="text-3xl font-black text-slate-800">${total}</p>
+                                <p class="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wide mt-1 font-semibold">Total Lotes</p>
+                            </div>
+                            <div>
+                                <p class="text-3xl font-black text-primary-600">${entregadas}</p>
+                                <p class="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wide mt-1 font-semibold">Escrituradas</p>
+                            </div>
+                            <div>
+                                <p class="text-3xl font-black text-amber-500">${pendientes}</p>
+                                <p class="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wide mt-1 font-semibold">Pendientes</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
                 return `
-                    ${header(`Bienvenido a ${data.general.name}`, `Última actualización: ${data.general.lastUpdate}`)}
+                    ${header(`Bienvenido a ${data.general.name}`, `Última actualización: ${data.general.lastUpdate}`)}                    
                     <div class="grid gap-4 mb-8">
                         ${data.dashboard.alerts.map(a => `<div class="p-4 rounded-lg border-l-4 flex gap-3 shadow-sm ${a.type === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-800' : 'bg-blue-50 border-blue-500 text-blue-800'}"><i class="fas ${a.type === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle'} mt-1"></i><p class="font-medium">${a.text}</p></div>`).join('')}
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100"><h3 class="text-lg font-bold mb-4 text-slate-700">Estado de la Comunidad Febrero 2026</h3><div class="h-64"><canvas id="statusChart"></canvas></div></div>
-                        <!-- Links Rápidos -->
+                    </div> 
+                    
+                    ${progressSection}
+                                           
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">                        
+                        <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                            <h3 class="text-lg font-bold mb-4 text-slate-700">Estado de la Comunidad Febrero 2026</h3>
+                            <div class="h-64"><canvas id="statusChart"></canvas></div>
+                        </div>
+                        
                         <div class="space-y-4">
                             ${data.dashboard.quickLinks.map(link => {
-                                // LÓGICA NUEVA: Detectar si es link interno (#) o externo
                                 const isInternal = link.action.startsWith('#');
-                                // Si es interno (#docs), usamos la función navigate(). Si es externo, dejamos el link normal.
                                 const clickAction = isInternal ? `onclick="navigate('${link.action.substring(1)}'); return false;"` : '';
                                 const href = isInternal ? '#' : link.action;
-                                const target = isInternal ? '' : 'target="_blank"'; // Abre externos en nueva pestaña
+                                const target = isInternal ? '' : 'target="_blank"'; 
                                 
                                 return `
                                 <a href="${href}" ${clickAction} ${target} class="block bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow flex items-center gap-4 group">
@@ -338,20 +410,30 @@
                         </div>   
                     </div>`;
             }
+
             if(viewId === 'payments') {
                 return `
                     ${header('Información Financiera', 'Datos para pago de mantenimiento.')}
                     
-                    <!-- 1. Cuota Mensual -->
-                    <div class="bg-primary-50 rounded-xl p-6 mb-6 border border-primary-100 flex items-center gap-4">
-                        <div class="p-3 bg-white rounded-full text-primary-600 shadow-sm"><i class="fas fa-coins text-2xl"></i></div>
-                        <div>
-                            <p class="text-sm text-primary-600 font-semibold uppercase tracking-wider">Cuota Mensual 2026</p>
-                            <p class="text-3xl font-bold text-slate-800">${data.payments.monthlyFee}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-primary-50 rounded-xl p-6 border border-primary-100 flex items-center gap-4">
+                            <div class="p-3 bg-white rounded-full text-primary-600 shadow-sm"><i class="fas fa-coins text-2xl"></i></div>
+                            <div>
+                                <p class="text-sm text-primary-600 font-semibold uppercase tracking-wider">Cuota Mensual</p>
+                                <p class="text-3xl font-bold text-slate-800">${data.payments.monthlyFee}</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-indigo-50 rounded-xl p-6 border border-indigo-100 flex items-center gap-4">
+                            <div class="p-3 bg-white rounded-full text-indigo-600 shadow-sm"><i class="fas fa-piggy-bank text-2xl"></i></div>
+                            <div>
+                                <p class="text-sm text-indigo-600 font-semibold uppercase tracking-wider">Fondo de Reserva</p>
+                                <p class="text-2xl font-bold text-slate-800">${data.payments.extraFee} <span class="text-sm font-normal text-slate-500">(Pago Único)</span></p>
+                                <p class="text-xs text-indigo-800 mt-1 leading-tight">Fondo voluntario para infraestructura. Para convenir el pago, contacta a Tesorería.</p>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 2. REGLAS DE REFERENCIA (IMPORTANTE) -->
                     <div class="bg-amber-50 border-l-4 border-amber-500 p-5 mb-8 rounded-r-lg shadow-sm">
                         <div class="flex flex-col sm:flex-row sm:items-start gap-4">
                             <div class="text-amber-500 text-xl"><i class="fas fa-exclamation-triangle"></i></div>
@@ -372,7 +454,6 @@
                         </div>
                     </div>
 
-                    <!-- 3. Tarjetas de Bancos -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         ${data.payments.bankAccounts.map(acc => `
                             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-primary-300 transition-colors group relative overflow-hidden">
@@ -415,50 +496,78 @@
                     </div>
                 `;
             }
-            if (viewId === 'news') {
+
+            if(viewId === 'directory') {
                 return `
-                    ${header('Comunicados Oficiales', 'Mantente informado de lo que sucede en el fraccionamiento.')}
+                    ${header('Directorio y Comunicación', 'Conoce a la Mesa Directiva y nuestros canales oficiales.')}
                     
-                    <div class="space-y-6">
-                        ${data.news.map(item => `
-                            <!-- Tarjeta de Noticia -->
-                            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 ${item.important ? 'border-l-4 border-l-primary-500' : ''} hover:shadow-md transition-shadow">
-                                
-                                <div class="flex flex-col md:flex-row md:items-start justify-between mb-3 gap-2">
-                                    <div>
-                                        <!-- Categoría (Badge) -->
-                                        <span class="inline-block px-2 py-1 rounded text-xs font-bold uppercase tracking-wide ${item.important ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-500'} mb-2">
-                                            ${item.category}
-                                        </span>
-                                        
-                                        <!-- Título -->
-                                        <h3 class="text-xl font-bold text-slate-800 leading-tight">
-                                            ${item.title}
-                                        </h3>
-                                    </div>
-
-                                    <!-- Fecha (con ícono) -->
-                                    <div class="flex items-center text-slate-400 text-sm whitespace-nowrap bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                                        <i class="far fa-clock mr-2 text-primary-400"></i>
-                                        <span class="font-medium">${item.date}</span>
-                                    </div>
+                    <h3 class="text-xl font-bold text-slate-700 mb-4 border-b pb-2">Mesa Directiva 2026</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                        ${(data.directory?.board || []).map(member => `
+                            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-lg">
+                                    ${member.name.charAt(0)}
                                 </div>
-
-                                <!-- Contenido del comunicado -->
-                                <div class="text-slate-600 leading-relaxed border-t border-slate-50 pt-3 mt-2">
-                                    ${item.content}
+                                <div>
+                                    <p class="text-xs text-primary-600 font-bold uppercase tracking-wider">${member.role}</p>
+                                    <h4 class="font-bold text-slate-800">${member.name}</h4>
+                                    <p class="text-xs text-slate-500">${member.desc}</p>
                                 </div>
+                            </div>
+                        `).join('')}
+                    </div>
 
+                    <h3 class="text-xl font-bold text-slate-700 mb-4 border-b pb-2">Grupos de WhatsApp</h3>
+                    <p class="text-sm text-slate-600 mb-4">Para estar en contacto, te agregaremos a los grupos principales administrados por la Mesa Directiva:</p>
+                    
+                    <div class="space-y-3">
+                        ${(data.directory?.groups || []).map(group => `
+                            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-start gap-4">
+                                <div class="mt-1 text-green-500 text-xl"><i class="fab fa-whatsapp"></i></div>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-bold text-slate-800">${group.name}</h4>
+                                        <span class="text-[10px] uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">${group.type}</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600">${group.desc}</p>
+                                </div>
                             </div>
                         `).join('')}
                     </div>
                 `;
             }
-            // (Simplificado para brevedad - el resto de vistas siguen la lógica anterior)
-            //if(viewId === 'news') return `${header('Comunicados', '')}<div class="space-y-6">${data.news.map(n => `<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 ${n.important ? 'border-l-4 border-l-primary-500' : ''}"><h3 class="text-xl font-bold text-slate-800">${n.title}</h3><p class="text-slate-600 mt-2">${n.content}</p></div>`).join('')}</div>`;
+
+            if (viewId === 'news') {
+                return `
+                    ${header('Comunicados Oficiales', 'Mantente informado de lo que sucede en el fraccionamiento.')}
+                    <div class="space-y-6">
+                        ${data.news.map(item => `
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 ${item.important ? 'border-l-4 border-l-primary-500' : ''} hover:shadow-md transition-shadow">
+                                <div class="flex flex-col md:flex-row md:items-start justify-between mb-3 gap-2">
+                                    <div>
+                                        <span class="inline-block px-2 py-1 rounded text-xs font-bold uppercase tracking-wide ${item.important ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-500'} mb-2">
+                                            ${item.category || 'Aviso'}
+                                        </span>
+                                        <h3 class="text-xl font-bold text-slate-800 leading-tight">${item.title}</h3>
+                                    </div>
+                                    <div class="flex items-center text-slate-400 text-sm whitespace-nowrap bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                                        <i class="far fa-clock mr-2 text-primary-400"></i>
+                                        <span class="font-medium">${item.date || ''}</span>
+                                    </div>
+                                </div>
+                                <div class="text-slate-600 leading-relaxed border-t border-slate-50 pt-3 mt-2">
+                                    ${item.content}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
             if(viewId === 'calendar') return `${header('Calendario', '')}<div class="bg-white rounded-xl shadow-sm border border-slate-200 divide-y divide-slate-100">${data.calendar.map(d => `<div class="p-6 flex flex-col sm:flex-row sm:items-center"><span class="w-32 font-bold text-slate-800">${d.day}</span><div>${d.activities.map(a => `<div class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i><span class="text-slate-600">${a}</span></div>`).join('')}</div></div>`).join('')}</div>`;
             if(viewId === 'docs') return `${header('Documentos', '')}<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${data.docs.map(d => `<a href="${d.url}" class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:border-primary-400 transition-all"><i class="fas fa-file-pdf text-2xl text-slate-400 mr-4"></i><div><h4 class="font-semibold text-slate-700">${d.name}</h4><p class="text-xs text-slate-400">${d.size}</p></div></a>`).join('')}</div>`;
             if(viewId === 'access') return `${header('Accesos & FAQ', '')}<div class="space-y-4">${data.access.map((item,i) => `<div class="bg-white rounded-xl border border-slate-200 overflow-hidden"><button class="w-full text-left p-5 flex justify-between items-center font-bold text-slate-700" onclick="toggleAccordion('faq-${i}')">${item.q} <i class="fas fa-chevron-down text-slate-400" id="icon-faq-${i}"></i></button><div id="faq-${i}" class="hidden px-5 pb-5 text-slate-600 bg-slate-50 border-t border-slate-100 text-sm">${item.a}</div></div>`).join('')}</div>`;
+            
             return `<div class="text-center p-10">Cargando...</div>`;
         }
 
